@@ -28,6 +28,7 @@ auto-commit.log
 /.next/
 /out/
 /scripts
+/push_changes.sh
 # production
 /build
 
