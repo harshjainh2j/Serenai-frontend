@@ -53,11 +53,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FixedChat } from "@/components/chat/fixed-chat";
 import { MoodForm } from "@/components/mood/mood-form";
 import { AnxietyGames } from "@/components/games/anxiety-games";
-import { ExpandableChat } from "@/components/chat/expandable-chat";
-import { MoodTracker } from "@/components/mood/mood-tracker";
-import { FitbitConnect } from "@/components/wearables/fitbit-connect";
-import { ActivityList } from "@/components/activities/activity-list";
-import { ChatHistory } from "@/components/chat/chat-history";
+
 import {
   getTodaysActivities,
   updateActivityStatus,
@@ -84,8 +80,7 @@ import {
   startOfDay,
   isWithinInterval,
 } from "date-fns";
-import { useAuth } from "@/lib/contexts/auth-context";
-import Modal from "@/components/Modal";
+
 import { ActivityLogger } from "@/components/activities/activity-logger";
 
 // Add this type definition

@@ -3,7 +3,7 @@ import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
-import { Providers } from "./providers";
+import { ThemeProvider } from "@/components/theme-provider";
 
 // Initialize the fonts
 const inter = Inter({
@@ -26,11 +26,11 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${plusJakarta.variable} font-sans antialiased`}
       >
-        <Providers>
+        <ThemeProvider>
           <Header />
           <main className="font-plus-jakarta">{children}</main>
           <Footer />
-        </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );

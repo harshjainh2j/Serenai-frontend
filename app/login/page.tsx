@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/contexts/auth-context";
+// import { useAuth } from "@/lib/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
@@ -12,7 +12,7 @@ import { Lock, Mail } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  // const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -23,7 +23,7 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      await login(email, password);
+      // await login(email, password);
       router.push("/dashboard");
     } catch (err) {
       setError("Invalid email or password. Please try again.");
@@ -102,15 +102,26 @@ export default function LoginPage() {
             </Button>
           </form>
           <div className="my-6 border-t border-primary/10" />
-          <p className="text-base text-center text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <Link
-              href="/signup"
-              className="text-primary font-semibold underline hover:text-primary/80 transition-colors"
-            >
-              Sign up
-            </Link>
-          </p>
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex items-center justify-center gap-2 text-sm">
+              <span className="text-muted-foreground">
+                Don&apos;t have an account?
+              </span>
+              <Link
+                href="/signup"
+                className="text-primary font-semibold underline hover:text-primary/80 transition-colors"
+              >
+                Sign up
+              </Link>
+              <span className="text-muted-foreground">·</span>
+              <Link
+                href="/forgot-password"
+                className="text-primary underline hover:text-primary/80 transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
+          </div>
         </Card>
       </Container>
     </div>

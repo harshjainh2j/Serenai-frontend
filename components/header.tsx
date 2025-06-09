@@ -13,12 +13,11 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./theme-toggle";
-import { useAuth } from "@/lib/contexts/auth-context";
-import { LoginModal } from "@/components/auth/login-modal";
+
 import { SignInButton } from "@/components/auth/sign-in-button";
 
 export function Header() {
-  const { isAuthenticated, user, logout } = useAuth();
+  // const { isAuthenticated, user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
@@ -41,7 +40,7 @@ export function Header() {
                 Aura3.0
               </span>
               <span className="text-xs dark:text-muted-foreground">
-                Your mental Companion{" "}
+                Your mental health Companion{" "}
               </span>
             </div>
           </Link>
@@ -63,29 +62,29 @@ export function Header() {
             <div className="flex items-center gap-3">
               <ThemeToggle />
 
-              {isAuthenticated ? (
-                <>
-                  <Button
-                    asChild
-                    className="hidden md:flex gap-2 bg-primary/90 hover:bg-primary"
-                  >
-                    <Link href="/dashboard">
-                      <MessageCircle className="w-4 h-4 mr-1" />
-                      Start Chat
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={logout}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign out
-                  </Button>
-                </>
-              ) : (
-                <SignInButton />
-              )}
+              {/* {isAuthenticated ? ( */}
+              <>
+                <Button
+                  asChild
+                  className="hidden md:flex gap-2 bg-primary/90 hover:bg-primary"
+                >
+                  <Link href="/dashboard">
+                    <MessageCircle className="w-4 h-4 mr-1" />
+                    Start Chat
+                  </Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  // onClick={logout}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign out
+                </Button>
+              </>
+              {/* ) : ( */}
+              <SignInButton />
+              {/* )} */}
 
               <Button
                 variant="ghost"
@@ -131,7 +130,7 @@ export function Header() {
         )}
       </header>
 
-      <LoginModal />
+      {/* <LoginModal /> */}
     </div>
   );
 }
