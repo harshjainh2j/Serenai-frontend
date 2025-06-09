@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
-import { Lock, Mail, Brain } from "lucide-react";
+import { Lock, Mail } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -23,7 +23,6 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      // @ts-ignore (login expects 1 arg, but we want to pass 2 for future backend update)
       await login(email, password);
       router.push("/dashboard");
     } catch (err) {
@@ -34,70 +33,67 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#e0e7ff] via-[#f5f7fa] to-[#c7d2fe] dark:from-[#232946] dark:via-[#16161a] dark:to-[#232946] transition-colors duration-500">
-      <Container className="max-w-md w-full">
-        <Card className="relative p-10 space-y-10 shadow-2xl border border-white/20 bg-white/70 dark:bg-[#16161a]/80 backdrop-blur-xl rounded-3xl transition-all duration-500">
-          <div className="flex flex-col items-center gap-2">
-            <span className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-primary to-indigo-400 shadow-lg mb-2">
-              <Brain className="w-8 h-8 text-white" />
-            </span>
-            <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-indigo-400 bg-clip-text text-transparent">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/30">
+      <Container className="flex flex-col items-center justify-center w-full">
+        <Card className="w-full md:w-5/12 max-w-2xl p-8 md:p-10 rounded-3xl shadow-2xl border border-primary/10 bg-card/90 backdrop-blur-lg mt-12">
+          <div className="mb-6 text-center">
+            <h1 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-1 tracking-tight">
               Sign In
             </h1>
-            <p className="text-muted-foreground text-lg font-medium">
-              Welcome back! Please sign in to continue.
+            <p className="text-base text-muted-foreground font-medium">
+              Welcome back! Please sign in to continue your journey.
             </p>
           </div>
-          <form
-            className="space-y-6"
-            onSubmit={handleSubmit}
-            autoComplete="off"
-          >
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-3">
-              <label htmlFor="email" className="block text-base font-semibold">
-                Email
-              </label>
-              <div className="relative group">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary/70 transition-colors group-focus-within:text-primary" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  className="pl-12 py-3 text-base rounded-xl border-2 border-transparent focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition-all"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoFocus
-                />
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-base font-semibold mb-1"
+                >
+                  Email
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    className="pl-12 py-2 text-base rounded-xl bg-card bg-opacity-80 border border-primary focus:outline-none focus:ring-2 focus:ring-primary text-white placeholder:text-muted-foreground"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
               </div>
-            </div>
-            <div className="space-y-3">
-              <label
-                htmlFor="password"
-                className="block text-base font-semibold"
-              >
-                Password
-              </label>
-              <div className="relative group">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary/70 transition-colors group-focus-within:text-primary" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  className="pl-12 py-3 text-base rounded-xl border-2 border-transparent focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition-all"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-base font-semibold mb-1"
+                >
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    className="pl-12 py-2 text-base rounded-xl bg-card bg-opacity-80 border border-primary focus:outline-none focus:ring-2 focus:ring-primary text-white placeholder:text-muted-foreground"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
               </div>
             </div>
             {error && (
-              <p className="text-red-500 text-sm text-center font-semibold animate-pulse">
+              <p className="text-red-500 text-base text-center font-medium">
                 {error}
               </p>
             )}
             <Button
-              className="w-full py-3 text-lg rounded-xl bg-gradient-to-r from-primary to-indigo-400 shadow-md hover:scale-[1.02] transition-transform font-bold"
+              className="w-full py-2 text-base rounded-xl font-bold bg-gradient-to-r from-primary to-primary/80 shadow-md hover:from-primary/80 hover:to-primary"
               size="lg"
               type="submit"
               disabled={loading}
@@ -105,11 +101,12 @@ export default function LoginPage() {
               {loading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
+          <div className="my-6 border-t border-primary/10" />
           <p className="text-base text-center text-muted-foreground">
             Don&apos;t have an account?{" "}
             <Link
               href="/signup"
-              className="text-primary underline font-semibold"
+              className="text-primary font-semibold underline hover:text-primary/80 transition-colors"
             >
               Sign up
             </Link>
