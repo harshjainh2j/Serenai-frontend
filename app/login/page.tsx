@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-// import { useAuth } from "@/lib/contexts/auth-context";
+import { loginUser } from "@/lib/api/auth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
@@ -12,7 +12,6 @@ import { Lock, Mail } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
-  // const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -23,10 +22,16 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      // await login(email, password);
+      const response = await loginUser(email, password);
+      // Store the token in localStorage or a secure cookie
+      localStorage.setItem("token", response.token);
       router.push("/dashboard");
     } catch (err) {
-      setError("Invalid email or password. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Invalid email or password. Please try again."
+      );
     } finally {
       setLoading(false);
     }
