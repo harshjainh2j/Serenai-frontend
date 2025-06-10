@@ -13,13 +13,14 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./theme-toggle";
-
 import { SignInButton } from "@/components/auth/sign-in-button";
+import { useSession } from "@/lib/contexts/session-context";
 
 export function Header() {
-  // const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  console.log("Header: Auth state:", { isAuthenticated, user });
   const navItems = [
     { href: "/features", label: "Features" },
     { href: "/about", label: "About Aura" },
@@ -62,29 +63,29 @@ export function Header() {
             <div className="flex items-center gap-3">
               <ThemeToggle />
 
-              {/* {isAuthenticated ? ( */}
-              <>
-                <Button
-                  asChild
-                  className="hidden md:flex gap-2 bg-primary/90 hover:bg-primary"
-                >
-                  <Link href="/dashboard">
-                    <MessageCircle className="w-4 h-4 mr-1" />
-                    Start Chat
-                  </Link>
-                </Button>
-                <Button
-                  variant="outline"
-                  // onClick={logout}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign out
-                </Button>
-              </>
-              {/* ) : ( */}
-              <SignInButton />
-              {/* )} */}
+              {isAuthenticated ? (
+                <>
+                  <Button
+                    asChild
+                    className="hidden md:flex gap-2 bg-primary/90 hover:bg-primary"
+                  >
+                    <Link href="/dashboard">
+                      <MessageCircle className="w-4 h-4 mr-1" />
+                      Start Chat
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={logout}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign out
+                  </Button>
+                </>
+              ) : (
+                <SignInButton />
+              )}
 
               <Button
                 variant="ghost"
@@ -116,15 +117,17 @@ export function Header() {
                   {item.label}
                 </Link>
               ))}
-              <Button
-                asChild
-                className="mt-2 mx-4 gap-2 bg-primary/90 hover:bg-primary"
-              >
-                <Link href="/chat">
-                  <MessageCircle className="w-4 h-4" />
-                  <span>Start Chat</span>
-                </Link>
-              </Button>
+              {isAuthenticated && (
+                <Button
+                  asChild
+                  className="mt-2 mx-4 gap-2 bg-primary/90 hover:bg-primary"
+                >
+                  <Link href="/dashboard">
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Start Chat</span>
+                  </Link>
+                </Button>
+              )}
             </nav>
           </div>
         )}

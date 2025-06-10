@@ -9,9 +9,11 @@ import { Container } from "@/components/ui/container";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Lock, Mail } from "lucide-react";
+import { useSession } from "@/lib/contexts/session-context";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { checkSession } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -22,11 +24,24 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
+      console.log("Login: Attempting login...");
       const response = await loginUser(email, password);
-      // Store the token in localStorage or a secure cookie
+      console.log("Login: Response received:", response);
+
+      // Store the token in localStorage
       localStorage.setItem("token", response.token);
+      console.log("Login: Token stored in localStorage");
+
+      // Update session state
+      console.log("Login: Checking session...");
+      await checkSession();
+      console.log("Login: Session checked, redirecting...");
+
+      // Wait for state to update before redirecting
+      await new Promise((resolve) => setTimeout(resolve, 100));
       router.push("/dashboard");
     } catch (err) {
+      console.error("Login: Error during login:", err);
       setError(
         err instanceof Error
           ? err.message

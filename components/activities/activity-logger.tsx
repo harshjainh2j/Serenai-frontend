@@ -21,7 +21,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { logActivity } from "@/lib/static-dashboard-data";
-import { useAuth } from "@/lib/contexts/auth-context";
 
 const activityTypes = [
   { id: "meditation", name: "Meditation" },
@@ -44,7 +43,6 @@ export function ActivityLogger({
   onActivityLogged,
 }: ActivityLoggerProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useAuth();
   const [type, setType] = useState("");
   const [name, setName] = useState("");
   const [duration, setDuration] = useState("");
