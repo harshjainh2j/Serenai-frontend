@@ -77,6 +77,8 @@ export function MoodForm({ onSuccess }: MoodFormProps) {
         title: "Mood tracked successfully!",
         description: "Your mood has been recorded.",
       });
+
+      // Call onSuccess to close the modal
       onSuccess?.();
     } catch (error) {
       console.error("MoodForm: Error:", error);

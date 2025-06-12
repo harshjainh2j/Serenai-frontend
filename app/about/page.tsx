@@ -2,16 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import {
-  Shield,
-  Heart,
-  Award,
-  Users,
-  Target,
-  Sparkles,
-  Globe,
-  Lock,
-} from "lucide-react";
+import { Heart, Target, Sparkles } from "lucide-react";
 
 const missions = [
   {
@@ -31,52 +22,6 @@ const missions = [
     title: "Our Values",
     description:
       "Privacy, Innovation, Empathy, and Trust form the cornerstone of our platform, ensuring the highest standards of care and security.",
-  },
-];
-
-const achievements = [
-  {
-    icon: <Users className="w-6 h-6" />,
-    number: "10,000+",
-    label: "Active Users",
-  },
-  {
-    icon: <Globe className="w-6 h-6" />,
-    number: "50+",
-    label: "Countries",
-  },
-  {
-    icon: <Lock className="w-6 h-6" />,
-    number: "100%",
-    label: "Data Privacy",
-  },
-  {
-    icon: <Award className="w-6 h-6" />,
-    number: "5+",
-    label: "Industry Awards",
-  },
-];
-
-const teamMembers = [
-  {
-    name: "Dr. Sarah Chen",
-    role: "Chief AI Ethics Officer",
-    image: "/team/sarah.jpg",
-  },
-  {
-    name: "Michael Rodriguez",
-    role: "Blockchain Architect",
-    image: "/team/michael.jpg",
-  },
-  {
-    name: "Dr. Emily Watson",
-    role: "Mental Health Director",
-    image: "/team/emily.jpg",
-  },
-  {
-    name: "James Park",
-    role: "AI Research Lead",
-    image: "/team/james.jpg",
   },
 ];
 

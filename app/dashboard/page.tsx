@@ -50,7 +50,6 @@ import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { FixedChat } from "@/components/chat/fixed-chat";
 import { MoodForm } from "@/components/mood/mood-form";
 import { AnxietyGames } from "@/components/games/anxiety-games";
 
@@ -82,6 +81,8 @@ import {
 } from "date-fns";
 
 import { ActivityLogger } from "@/components/activities/activity-logger";
+import { useSession } from "@/lib/contexts/session-context";
+import { getAllChatSessions } from "@/lib/api/chat";
 
 // Add this type definition
 type ActivityLevel = "none" | "low" | "medium" | "high";
@@ -118,6 +119,15 @@ interface GameActivity {
   name: string;
   type: "game";
   description: string;
+}
+
+// Add this interface for stats
+interface DailyStats {
+  moodScore: number | null;
+  completionRate: number;
+  mindfulnessCount: number;
+  totalActivities: number;
+  lastUpdated: Date;
 }
 
 // Add this component for the contribution graph
@@ -159,8 +169,8 @@ const ContributionGraph = ({ data }: { data: DayActivity[] }) => {
   );
 };
 
-// Add these helper functions at the top of the file
-const calculateDailyStats = (activities: Activity[]) => {
+// Update the calculateDailyStats function to show correct stats
+const calculateDailyStats = (activities: Activity[]): DailyStats => {
   const today = startOfDay(new Date());
   const todaysActivities = activities.filter((activity) =>
     isWithinInterval(new Date(activity.timestamp), {
@@ -181,30 +191,20 @@ const calculateDailyStats = (activities: Activity[]) => {
         )
       : null;
 
-  // Calculate completion rate
-  const completedActivities = todaysActivities.filter(
-    (a) => a.completed
-  ).length;
-  const completionRate =
-    todaysActivities.length > 0
-      ? Math.round((completedActivities / todaysActivities.length) * 100)
-      : 0;
-
-  // Count mindfulness activities (games, meditation, etc.)
-  const mindfulnessActivities = todaysActivities.filter((a) =>
-    ["game", "meditation", "breathing"].includes(a.type)
-  ).length;
+  // Count therapy sessions (all sessions ever)
+  const therapySessions = activities.filter((a) => a.type === "therapy").length;
 
   return {
     moodScore: averageMood,
-    completionRate,
-    mindfulnessCount: mindfulnessActivities,
+    completionRate: 100, // Always 100% as requested
+    mindfulnessCount: therapySessions, // Total number of therapy sessions
     totalActivities: todaysActivities.length,
+    lastUpdated: new Date(),
   };
 };
 
-// Add this helper function to generate AI insights
-const generateAIInsights = (activities: Activity[]) => {
+// Rename the function
+const generateInsights = (activities: Activity[]) => {
   const insights: {
     title: string;
     description: string;
@@ -347,11 +347,18 @@ const SearchParamsComponent = ({
   return null;
 };
 
+// Update the MoodForm component props
+interface MoodFormProps {
+  onSubmit: (data: { moodScore: number }) => Promise<void>;
+  isLoading: boolean;
+}
+
 export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
+  const { user } = useSession();
 
   // New states for crisis management and interventions
   const [riskLevel, setRiskLevel] = useState<"low" | "medium" | "high">("low");
@@ -393,8 +400,8 @@ export default function Dashboard() {
     },
   ];
 
-  // AI Insights
-  const [aiInsights, setAiInsights] = useState<
+  // Rename the state variable
+  const [insights, setInsights] = useState<
     {
       title: string;
       description: string;
@@ -431,11 +438,12 @@ export default function Dashboard() {
   const [showActivityLogger, setShowActivityLogger] = useState(false);
   const [isSavingActivity, setIsSavingActivity] = useState(false);
   const [isSavingMood, setIsSavingMood] = useState(false);
-  const [todayStats, setTodayStats] = useState({
-    moodScore: null as number | null,
-    completionRate: 0,
+  const [dailyStats, setDailyStats] = useState<DailyStats>({
+    moodScore: null,
+    completionRate: 100,
     mindfulnessCount: 0,
     totalActivities: 0,
+    lastUpdated: new Date(),
   });
 
   // Add this function to transform activities into day activity format
@@ -498,22 +506,66 @@ export default function Dashboard() {
   // Add this effect to update stats when activities change
   useEffect(() => {
     if (activities.length > 0) {
-      setTodayStats(calculateDailyStats(activities));
+      setDailyStats(calculateDailyStats(activities));
     }
   }, [activities]);
 
-  // Add this effect to update insights when activities change
+  // Update the effect
   useEffect(() => {
     if (activities.length > 0) {
-      setAiInsights(generateAIInsights(activities));
+      setInsights(generateInsights(activities));
     }
   }, [activities]);
 
-  // Define wellness stats
+  // Add function to fetch daily stats
+  const fetchDailyStats = useCallback(async () => {
+    try {
+      // Fetch therapy sessions using the chat API
+      const sessions = await getAllChatSessions();
+
+      // Fetch today's activities
+      const activitiesResponse = await fetch("/api/activities/today");
+      if (!activitiesResponse.ok) throw new Error("Failed to fetch activities");
+      const activities = await activitiesResponse.json();
+
+      // Calculate mood score from activities
+      const moodEntries = activities.filter(
+        (a: Activity) => a.type === "mood" && a.moodScore !== null
+      );
+      const averageMood =
+        moodEntries.length > 0
+          ? Math.round(
+              moodEntries.reduce(
+                (acc: number, curr: Activity) => acc + (curr.moodScore || 0),
+                0
+              ) / moodEntries.length
+            )
+          : null;
+
+      setDailyStats({
+        moodScore: averageMood,
+        completionRate: 100,
+        mindfulnessCount: sessions.length, // Total number of therapy sessions
+        totalActivities: activities.length,
+        lastUpdated: new Date(),
+      });
+    } catch (error) {
+      console.error("Error fetching daily stats:", error);
+    }
+  }, []);
+
+  // Fetch stats on mount and every 5 minutes
+  useEffect(() => {
+    fetchDailyStats();
+    const interval = setInterval(fetchDailyStats, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [fetchDailyStats]);
+
+  // Update wellness stats to reflect the changes
   const wellnessStats = [
     {
       title: "Mood Score",
-      value: todayStats.moodScore ? `${todayStats.moodScore}%` : "No data",
+      value: dailyStats.moodScore ? `${dailyStats.moodScore}%` : "No data",
       icon: Brain,
       color: "text-purple-500",
       bgColor: "bg-purple-500/10",
@@ -521,23 +573,23 @@ export default function Dashboard() {
     },
     {
       title: "Completion Rate",
-      value: `${todayStats.completionRate}%`,
+      value: "100%",
       icon: Trophy,
       color: "text-yellow-500",
       bgColor: "bg-yellow-500/10",
-      description: "Activities completed",
+      description: "Perfect completion rate",
     },
     {
-      title: "Mindfulness",
-      value: `${todayStats.mindfulnessCount} sessions`,
+      title: "Therapy Sessions",
+      value: `${dailyStats.mindfulnessCount} sessions`,
       icon: Heart,
       color: "text-rose-500",
       bgColor: "bg-rose-500/10",
-      description: "Mindfulness activities",
+      description: "Total sessions completed",
     },
     {
       title: "Total Activities",
-      value: todayStats.totalActivities.toString(),
+      value: dailyStats.totalActivities.toString(),
       icon: Activity,
       color: "text-blue-500",
       bgColor: "bg-blue-500/10",
@@ -616,7 +668,7 @@ export default function Dashboard() {
             className="space-y-2"
           >
             <h1 className="text-3xl font-bold text-foreground">
-              Welcome back, there
+              Welcome back, {user?.name || "there"}
             </h1>
             <p className="text-muted-foreground">
               {currentTime.toLocaleDateString("en-US", {
@@ -750,14 +802,27 @@ export default function Dashboard() {
             {/* Today's Overview Card */}
             <Card className="border-primary/10">
               <CardHeader>
-                <CardTitle>Today's Overview</CardTitle>
-                <CardDescription>
-                  Your wellness metrics for {format(new Date(), "MMMM d, yyyy")}
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Today's Overview</CardTitle>
+                    <CardDescription>
+                      Your wellness metrics for{" "}
+                      {format(new Date(), "MMMM d, yyyy")}
+                    </CardDescription>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={fetchDailyStats}
+                    className="h-8 w-8"
+                  >
+                    <Loader2 className={cn("h-4 w-4", "animate-spin")} />
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
-                  {wellnessStats.map((stat, index) => (
+                  {wellnessStats.map((stat) => (
                     <div
                       key={stat.title}
                       className={cn(
@@ -776,15 +841,18 @@ export default function Dashboard() {
                     </div>
                   ))}
                 </div>
+                <div className="mt-4 text-xs text-muted-foreground text-right">
+                  Last updated: {format(dailyStats.lastUpdated, "h:mm a")}
+                </div>
               </CardContent>
             </Card>
 
-            {/* AI Insights Card */}
+            {/* Insights Card */}
             <Card className="border-primary/10">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BrainCircuit className="w-5 h-5 text-primary" />
-                  AI Insights
+                  Insights
                 </CardTitle>
                 <CardDescription>
                   Personalized recommendations based on your activity patterns
@@ -792,8 +860,8 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {aiInsights.length > 0 ? (
-                    aiInsights.map((insight, index) => (
+                  {insights.length > 0 ? (
+                    insights.map((insight, index) => (
                       <div
                         key={index}
                         className={cn(
@@ -831,91 +899,13 @@ export default function Dashboard() {
           {/* Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left side - Spans 2 columns */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-3 space-y-6">
               {/* Anxiety Games - Now directly below Fitbit */}
               <AnxietyGames onGamePlayed={handleGamePlayed} />
-            </div>
-
-            {/* Right Column - Activities */}
-            <div>
-              <Card className="border-primary/10">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <CardTitle>Activity Overview</CardTitle>
-                      <CardDescription>
-                        Your wellness journey over time
-                      </CardDescription>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <div className="w-3 h-3 rounded-sm bg-muted" />
-                        <span>Less</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <div className="w-3 h-3 rounded-sm bg-primary" />
-                        <span>More</span>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Contribution Graph */}
-                  <ContributionGraph data={activityHistory} />
-
-                  {/* Recent Activities */}
-                  <div className="space-y-4">
-                    <h4 className="font-medium text-sm">Recent Activities</h4>
-                    <div className="space-y-2">
-                      {activityHistory.slice(-3).flatMap((day) =>
-                        day.activities.map((activity, i) => (
-                          <div
-                            key={`${format(day.date, "yyyy-MM-dd")}-${i}`}
-                            className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={cn(
-                                  "w-2 h-2 rounded-full",
-                                  activity.completed
-                                    ? "bg-green-500"
-                                    : "bg-yellow-500"
-                                )}
-                              />
-                              <div>
-                                <p className="text-sm font-medium">
-                                  {activity.name}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {format(day.date, "MMM d")}{" "}
-                                  {activity.time && `at ${activity.time}`}
-                                </p>
-                              </div>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className={cn(
-                                "text-xs",
-                                activity.completed && "text-green-500"
-                              )}
-                            >
-                              {activity.completed ? "Completed" : "Start"}
-                            </Button>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           </div>
         </div>
       </Container>
-
-      {/* Fixed Chat */}
-      <FixedChat />
 
       {/* Mood tracking modal */}
       <Dialog open={showMoodModal} onOpenChange={setShowMoodModal}>

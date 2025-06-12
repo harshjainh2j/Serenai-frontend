@@ -20,7 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { logActivity } from "@/lib/static-dashboard-data";
+import { useToast } from "@/components/ui/use-toast";
+import { useSession } from "@/lib/contexts/session-context";
+import { logActivity } from "@/lib/api/activity";
 
 const activityTypes = [
   { id: "meditation", name: "Meditation" },
@@ -47,14 +49,32 @@ export function ActivityLogger({
   const [name, setName] = useState("");
   const [duration, setDuration] = useState("");
   const [description, setDescription] = useState("");
+  const { toast } = useToast();
+  const { user, isAuthenticated, loading } = useSession();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.id || !type || !name) return;
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to log activities",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!type || !name) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       await logActivity({
-        userId: user.id,
         type,
         name,
         description,
@@ -67,10 +87,21 @@ export function ActivityLogger({
       setDuration("");
       setDescription("");
 
+      toast({
+        title: "Activity logged successfully!",
+        description: "Your activity has been recorded.",
+      });
+
       onActivityLogged();
       onOpenChange(false);
     } catch (error) {
       console.error("Error logging activity:", error);
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to log activity",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -136,12 +167,14 @@ export function ActivityLogger({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading || loading}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Saving...
                 </>
+              ) : loading ? (
+                "Loading..."
               ) : (
                 "Save Activity"
               )}
