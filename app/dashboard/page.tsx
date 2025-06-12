@@ -1,37 +1,23 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   Brain,
   Calendar,
-  LineChart,
-  MessageCircle,
   Activity,
   Sun,
   Moon,
-  Cloud,
-  Timer,
-  BookOpen,
   Heart,
   Trophy,
   Bell,
   AlertCircle,
   PhoneCall,
-  Pill,
-  Lightbulb,
   Sparkles,
   MessageSquare,
-  Settings,
-  Wand2,
-  Wifi,
-  Thermometer,
-  Music,
-  Lamp,
   BrainCircuit,
   ArrowRight,
   X,
-  XCircle,
   Loader2,
 } from "lucide-react";
 import {
@@ -42,27 +28,19 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Container } from "@/components/ui/container";
 import { cn } from "@/lib/utils";
 
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MoodForm } from "@/components/mood/mood-form";
 import { AnxietyGames } from "@/components/games/anxiety-games";
 
 import {
-  getTodaysActivities,
-  updateActivityStatus,
-  getLatestHealthMetrics,
   getUserActivities,
   saveMoodData,
   logActivity,
 } from "@/lib/static-dashboard-data";
-import { StartSessionModal } from "@/components/therapy/start-session-modal";
-import { SessionHistory } from "@/components/therapy/session-history";
+
 import {
   Dialog,
   DialogContent,
@@ -71,7 +49,6 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Calendar as CalendarIcon } from "lucide-react";
 import {
   addDays,
   format,
@@ -114,13 +91,6 @@ interface Activity {
   updatedAt: Date;
 }
 
-// Add this interface near other interfaces
-interface GameActivity {
-  name: string;
-  type: "game";
-  description: string;
-}
-
 // Add this interface for stats
 interface DailyStats {
   moodScore: number | null;
@@ -129,45 +99,6 @@ interface DailyStats {
   totalActivities: number;
   lastUpdated: Date;
 }
-
-// Add this component for the contribution graph
-const ContributionGraph = ({ data }: { data: DayActivity[] }) => {
-  const getLevelColor = (level: ActivityLevel) => {
-    switch (level) {
-      case "high":
-        return "bg-primary hover:bg-primary/90";
-      case "medium":
-        return "bg-primary/60 hover:bg-primary/70";
-      case "low":
-        return "bg-primary/30 hover:bg-primary/40";
-      default:
-        return "bg-muted hover:bg-muted/80";
-    }
-  };
-
-  return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-7 gap-2">
-        {data.map((day, i) => (
-          <div key={i} className="group relative">
-            <div
-              className={cn(
-                "w-full aspect-square rounded-sm cursor-pointer transition-colors",
-                getLevelColor(day.level)
-              )}
-            />
-            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block">
-              <div className="bg-popover text-popover-foreground text-xs rounded-md px-2 py-1 whitespace-nowrap shadow-md">
-                <p className="font-medium">{format(day.date, "MMM d, yyyy")}</p>
-                <p>{day.activities.length} activities</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 // Update the calculateDailyStats function to show correct stats
 const calculateDailyStats = (activities: Activity[]): DailyStats => {
@@ -332,73 +263,11 @@ const generateInsights = (activities: Activity[]) => {
     .slice(0, 3);
 };
 
-// Create a SearchParamsComponent to isolate useSearchParams
-const SearchParamsComponent = ({
-  onParamsChange,
-}: {
-  onParamsChange: (params: URLSearchParams) => void;
-}) => {
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    onParamsChange(searchParams);
-  }, [searchParams, onParamsChange]);
-
-  return null;
-};
-
-// Update the MoodForm component props
-interface MoodFormProps {
-  onSubmit: (data: { moodScore: number }) => Promise<void>;
-  isLoading: boolean;
-}
-
 export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const router = useRouter();
-  const [showModal, setShowModal] = useState(false);
   const { user } = useSession();
-
-  // New states for crisis management and interventions
-  const [riskLevel, setRiskLevel] = useState<"low" | "medium" | "high">("low");
-  const [showCrisisAlert, setShowCrisisAlert] = useState(false);
-  const [interventions, setInterventions] = useState([
-    {
-      type: "meditation",
-      title: "Breathing Exercise",
-      duration: "5 mins",
-      completed: false,
-    },
-    {
-      type: "activity",
-      title: "Evening Walk",
-      duration: "20 mins",
-      completed: true,
-    },
-  ]);
-
-  // Crisis resources
-  const emergencyContacts = [
-    { name: "Crisis Hotline", number: "1-800-273-8255" },
-    { name: "Therapist", number: "Dr. Smith - (555) 123-4567" },
-  ];
-
-  // Medication tracking
-  const medications = [
-    {
-      name: "Sertraline",
-      dosage: "50mg",
-      time: "9:00 AM",
-      taken: true,
-    },
-    {
-      name: "Vitamin D",
-      dosage: "1000 IU",
-      time: "9:00 AM",
-      taken: false,
-    },
-  ];
 
   // Rename the state variable
   const [insights, setInsights] = useState<
@@ -409,26 +278,6 @@ export default function Dashboard() {
       priority: "low" | "medium" | "high";
     }[]
   >([]);
-
-  // New states for chat and IoT
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      content: "Hi there, how are you feeling today?",
-      timestamp: new Date(Date.now() - 1000 * 60 * 5),
-    },
-    {
-      role: "user",
-      content: "I'm feeling a bit anxious about my presentation tomorrow.",
-      timestamp: new Date(Date.now() - 1000 * 60 * 4),
-    },
-    {
-      role: "assistant",
-      content:
-        "I understand presentations can be stressful. Would you like to try a quick breathing exercise together?",
-      timestamp: new Date(Date.now() - 1000 * 60 * 3),
-    },
-  ]);
 
   // New states for activities and wearables
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -685,25 +534,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Crisis Alert */}
-        {showCrisisAlert && (
-          <Alert variant="destructive" className="animate-pulse">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Crisis Support Available</AlertTitle>
-            <AlertDescription>
-              We've noticed you might be having a difficult time. Help is
-              available 24/7.
-              <div className="mt-2">
-                <Button variant="secondary" className="mr-2">
-                  <PhoneCall className="mr-2 h-4 w-4" />
-                  Call Crisis Line
-                </Button>
-                <Button variant="outline">Message Therapist</Button>
-              </div>
-            </AlertDescription>
-          </Alert>
-        )}
-
         {/* Main Grid Layout */}
         <div className="space-y-6">
           {/* Top Cards Grid */}
@@ -935,9 +765,7 @@ export default function Dashboard() {
                   <X className="w-4 h-4" />
                 </Button>
               </div>
-              <div className="flex-1 overflow-y-auto p-4">
-                {/* Add your AI chat interface here */}
-              </div>
+              <div className="flex-1 overflow-y-auto p-4"></div>
             </div>
           </div>
         </div>
