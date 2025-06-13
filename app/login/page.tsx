@@ -24,24 +24,18 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      console.log("Login: Attempting login...");
       const response = await loginUser(email, password);
-      console.log("Login: Response received:", response);
 
       // Store the token in localStorage
       localStorage.setItem("token", response.token);
-      console.log("Login: Token stored in localStorage");
 
       // Update session state
-      console.log("Login: Checking session...");
       await checkSession();
-      console.log("Login: Session checked, redirecting...");
 
       // Wait for state to update before redirecting
       await new Promise((resolve) => setTimeout(resolve, 100));
       router.push("/dashboard");
     } catch (err) {
-      console.error("Login: Error during login:", err);
       setError(
         err instanceof Error
           ? err.message
