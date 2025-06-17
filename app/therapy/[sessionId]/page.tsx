@@ -258,32 +258,42 @@ export default function TherapyPage() {
       console.log("Sending message to API...");
       // Send message to API
       const response = await sendChatMessage(sessionId, currentMessage);
-      console.log("Received AI response:", response);
+      console.log("Raw API response:", response);
 
       // Parse the response if it's a string
-      const aiResponse: ApiResponse =
+      const aiResponse =
         typeof response === "string" ? JSON.parse(response) : response;
+      console.log("Parsed AI response:", aiResponse);
 
       // Add AI response with metadata
       const assistantMessage: ChatMessage = {
         role: "assistant",
-        content: aiResponse.message,
+        content:
+          aiResponse.response ||
+          aiResponse.message ||
+          "I'm here to support you. Could you tell me more about what's on your mind?",
         timestamp: new Date(),
-        metadata: aiResponse.metadata,
+        metadata: {
+          analysis: aiResponse.analysis || {
+            emotionalState: "neutral",
+            riskLevel: 0,
+            themes: [],
+            recommendedApproach: "supportive",
+            progressIndicators: [],
+          },
+          technique: aiResponse.metadata?.technique || "supportive",
+          goal: aiResponse.metadata?.currentGoal || "Provide support",
+          progress: aiResponse.metadata?.progress || {
+            emotionalState: "neutral",
+            riskLevel: 0,
+          },
+        },
       };
+
+      console.log("Created assistant message:", assistantMessage);
+
+      // Add the message immediately
       setMessages((prev) => [...prev, assistantMessage]);
-
-      // Reload chat history to ensure we have the latest state
-      const updatedHistory = await getChatHistory(sessionId);
-      if (Array.isArray(updatedHistory)) {
-        setMessages(
-          updatedHistory.map((msg) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp),
-          }))
-        );
-      }
-
       setIsTyping(false);
       scrollToBottom();
     } catch (error) {
@@ -364,32 +374,6 @@ export default function TherapyPage() {
     }
 
     return null;
-  };
-
-  const renderActivity = (type: string) => {
-    switch (type) {
-      case "breathing":
-        return <BreathingGame />;
-      case "garden":
-        return <ZenGarden />;
-      case "forest":
-        return <ForestGame />;
-      case "waves":
-        return <OceanWaves />;
-      default:
-        return null;
-    }
-  };
-
-  const handleActivityStart = () => {
-    setShowActivity(true);
-    setIsChatPaused(true);
-  };
-
-  const handleCloseActivity = () => {
-    setShowActivity(false);
-    setStressPrompt(null);
-    setIsChatPaused(false);
   };
 
   const handleSuggestedQuestion = async (text: string) => {
@@ -505,9 +489,19 @@ export default function TherapyPage() {
                       {session.messages.length} messages
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(session.updatedAt), {
-                        addSuffix: true,
-                      })}
+                      {(() => {
+                        try {
+                          const date = new Date(session.updatedAt);
+                          if (isNaN(date.getTime())) {
+                            return "Just now";
+                          }
+                          return formatDistanceToNow(date, {
+                            addSuffix: true,
+                          });
+                        } catch (error) {
+                          return "Just now";
+                        }
+                      })()}
                     </span>
                   </div>
                 </div>
@@ -531,20 +525,6 @@ export default function TherapyPage() {
                 </p>
               </div>
             </div>
-            {messages.length >= COMPLETION_THRESHOLD && !showNFTCelebration && (
-              <Button
-                variant="outline"
-                className="bg-white/50 backdrop-blur-sm hover:bg-white/75 border-primary/20"
-                onClick={handleCompleteSession}
-                disabled={isCompletingSession}
-              >
-                <Trophy className="w-4 h-4 mr-2 text-primary" />
-                Complete Session
-                {isCompletingSession && (
-                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                )}
-              </Button>
-            )}
           </div>
 
           {messages.length === 0 ? (
@@ -752,76 +732,6 @@ export default function TherapyPage() {
           </div>
         </div>
       </div>
-
-      {/* Stress Management Prompt */}
-      {stressPrompt && !showActivity && (
-        <div className="fixed bottom-24 right-4 max-w-sm">
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-start">
-                <div className="flex gap-2">
-                  <Sparkles className="w-5 h-5 text-primary" />
-                  <CardTitle className="text-sm font-medium">
-                    Take a Moment
-                  </CardTitle>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => setStressPrompt(null)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              <CardDescription>
-                Would you like to try a quick {stressPrompt.activity.title} to
-                help you feel more relaxed?
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={handleActivityStart}
-                >
-                  Yes, I'd like that
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setStressPrompt(null)}
-                >
-                  No, thanks
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Show Activity */}
-      {showActivity && stressPrompt && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-background p-6 rounded-lg max-w-2xl w-full mx-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">
-                {stressPrompt.activity.title}
-              </h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCloseActivity}
-                className="h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            {renderActivity(stressPrompt.activity.type)}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

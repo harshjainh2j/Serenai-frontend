@@ -5,10 +5,20 @@ const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:3001";
 export async function POST(req: NextRequest) {
   try {
     console.log("Creating new chat session...");
+    const authHeader = req.headers.get("Authorization");
+
+    if (!authHeader) {
+      return NextResponse.json(
+        { error: "Authorization header is required" },
+        { status: 401 }
+      );
+    }
+
     const response = await fetch(`${BACKEND_API_URL}/chat/sessions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: authHeader,
       },
     });
 

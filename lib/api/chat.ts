@@ -6,6 +6,13 @@ export interface ChatMessage {
     technique: string;
     goal: string;
     progress: any[];
+    analysis?: {
+      emotionalState: string;
+      themes: string[];
+      riskLevel: number;
+      recommendedApproach: string;
+      progressIndicators: string[];
+    };
   };
 }
 
@@ -18,7 +25,15 @@ export interface ChatSession {
 
 export interface ApiResponse {
   message: string;
-  metadata: {
+  response?: string;
+  analysis?: {
+    emotionalState: string;
+    themes: string[];
+    riskLevel: number;
+    recommendedApproach: string;
+    progressIndicators: string[];
+  };
+  metadata?: {
     technique: string;
     goal: string;
     progress: any[];
@@ -27,14 +42,21 @@ export interface ApiResponse {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
+// Helper function to get auth headers
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("token");
+  return {
+    "Content-Type": "application/json",
+    Authorization: token ? `Bearer ${token}` : "",
+  };
+};
+
 export const createChatSession = async (): Promise<string> => {
   try {
     console.log("Creating new chat session...");
     const response = await fetch(`${API_BASE}/chat/sessions`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -62,9 +84,7 @@ export const sendChatMessage = async (
       `${API_BASE}/chat/sessions/${sessionId}/messages`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ message }),
       }
     );
@@ -90,7 +110,10 @@ export const getChatHistory = async (
   try {
     console.log(`Fetching chat history for session ${sessionId}`);
     const response = await fetch(
-      `${API_BASE}/chat/sessions/${sessionId}/history`
+      `${API_BASE}/chat/sessions/${sessionId}/history`,
+      {
+        headers: getAuthHeaders(),
+      }
     );
 
     if (!response.ok) {
@@ -123,7 +146,9 @@ export const getChatHistory = async (
 export const getAllChatSessions = async (): Promise<ChatSession[]> => {
   try {
     console.log("Fetching all chat sessions...");
-    const response = await fetch(`${API_BASE}/chat/sessions`);
+    const response = await fetch(`${API_BASE}/chat/sessions`, {
+      headers: getAuthHeaders(),
+    });
 
     if (!response.ok) {
       const error = await response.json();
@@ -134,15 +159,21 @@ export const getAllChatSessions = async (): Promise<ChatSession[]> => {
     const data = await response.json();
     console.log("Received chat sessions:", data);
 
-    return data.map((session: any) => ({
-      ...session,
-      createdAt: new Date(session.createdAt),
-      updatedAt: new Date(session.updatedAt),
-      messages: session.messages.map((msg: any) => ({
-        ...msg,
-        timestamp: new Date(msg.timestamp),
-      })),
-    }));
+    return data.map((session: any) => {
+      // Ensure dates are valid
+      const createdAt = new Date(session.createdAt || Date.now());
+      const updatedAt = new Date(session.updatedAt || Date.now());
+
+      return {
+        ...session,
+        createdAt: isNaN(createdAt.getTime()) ? new Date() : createdAt,
+        updatedAt: isNaN(updatedAt.getTime()) ? new Date() : updatedAt,
+        messages: (session.messages || []).map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp || Date.now()),
+        })),
+      };
+    });
   } catch (error) {
     console.error("Error fetching chat sessions:", error);
     throw error;
