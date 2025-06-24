@@ -31,6 +31,8 @@ auto-commit.log
 /out/
 /scripts
 /push_changes.sh
+test.md
+structuree.md
 # production
 /build
 

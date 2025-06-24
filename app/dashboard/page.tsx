@@ -746,7 +746,7 @@ export default function Dashboard() {
               Move the slider to track your current mood
             </DialogDescription>
           </DialogHeader>
-          <MoodForm onSubmit={handleMoodSubmit} isLoading={isSavingMood} />
+          <MoodForm onSuccess={() => setShowMoodModal(false)} />
         </DialogContent>
       </Dialog>
 
