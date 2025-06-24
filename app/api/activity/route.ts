@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const API_URL = process.env.BACKEND_API_URL || "http://localhost:3001";
+  const API_URL =
+    process.env.BACKEND_API_URL ||
+    "https://ai-therapist-agent-backend.onrender.com";
   const token = req.headers.get("Authorization");
 
   if (!token) {

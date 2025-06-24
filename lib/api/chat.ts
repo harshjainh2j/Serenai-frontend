@@ -40,7 +40,9 @@ export interface ApiResponse {
   };
 }
 
-const API_BASE = process.env.BACKEND_API_URL || "http://localhost:3001";
+const API_BASE =
+  process.env.BACKEND_API_URL ||
+  "https://ai-therapist-agent-backend.onrender.com";
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {
