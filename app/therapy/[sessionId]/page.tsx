@@ -519,7 +519,7 @@ export default function TherapyPage() {
                 <Bot className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="font-semibold">AI Therapist</h2>
+                <h2 className="font-semibold">Your Companion</h2>
                 <p className="text-sm text-muted-foreground">
                   {messages.length} messages
                 </p>
@@ -552,7 +552,7 @@ export default function TherapyPage() {
                         </motion.div>
                       </div>
                       <span className="bg-gradient-to-r from-primary/90 to-primary bg-clip-text text-transparent">
-                        AI Therapist
+                        Your Companion
                       </span>
                     </div>
                     <p className="text-muted-foreground mt-2">
@@ -575,13 +575,16 @@ export default function TherapyPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 + 0.5 }}
                     >
+                     
                       <Button
                         variant="outline"
                         className="w-full h-auto py-4 px-6 text-left justify-start hover:bg-muted/50 hover:border-primary/50 transition-all duration-300"
                         onClick={() => handleSuggestedQuestion(q.text)}
                       >
+                       
                         {q.text}
                       </Button>
+                    
                     </motion.div>
                   ))}
                 </div>
@@ -621,7 +624,7 @@ export default function TherapyPage() {
                           <div className="flex items-center justify-between">
                             <p className="font-medium text-sm">
                               {msg.role === "assistant"
-                                ? "AI Therapist"
+                                ? "Your Companion"
                                 : "You"}
                             </p>
                             {msg.metadata?.technique && (
@@ -656,7 +659,7 @@ export default function TherapyPage() {
                       </div>
                     </div>
                     <div className="flex-1 space-y-2">
-                      <p className="font-medium text-sm">AI Therapist</p>
+                      <p className="font-medium text-sm">Your Companion</p>
                       <p className="text-sm text-muted-foreground">Typing...</p>
                     </div>
                   </motion.div>
