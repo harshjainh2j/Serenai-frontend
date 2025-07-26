@@ -25,7 +25,7 @@ export default function LoginPage() {
     setError("");
     try {
       const response = await loginUser(email, password);
-
+      
       // Store the token in localStorage
       localStorage.setItem("token", response.token);
 
