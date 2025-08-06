@@ -24,7 +24,7 @@ export function Header() {
   const navItems = [
     { href: "/features", label: "Features" },
     { href: "/about", label: "About Serenai" },
-    { href: "https://lushlines.vercel.app/blogs", label: "Blogs", external: true },
+    { href: "https://lushlines.vercel.app/", label: "Blogs", external: true },
   ];
 
   return (
