@@ -24,6 +24,7 @@ export function Header() {
   const navItems = [
     { href: "/features", label: "Features" },
     { href: "/about", label: "About Serenai" },
+    { href: "https://lushlines.vercel.app/blogs", label: "Blogs", external: true },
   ];
 
   return (
@@ -48,16 +49,30 @@ export function Header() {
 
           <div className="flex items-center gap-4">
             <nav className="hidden md:flex items-center space-x-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-                >
-                  {item.label}
-                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
-                </Link>
-              ))}
+            {navItems.map((item) =>
+  item.external ? (
+    <a
+      key={item.href}
+      href={item.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+    >
+      {item.label}
+      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
+    </a>
+  ) : (
+    <Link
+      key={item.href}
+      href={item.href}
+      className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+    >
+      {item.label}
+      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
+    </Link>
+  )
+)}
+
             </nav>
 
             <div className="flex items-center gap-3">
@@ -107,16 +122,30 @@ export function Header() {
         {isMenuOpen && (
           <div className="md:hidden border-t border-primary/10">
             <nav className="flex flex-col space-y-1 py-4">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 rounded-md transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              ))}
+            {navItems.map((item) =>
+  item.external ? (
+    <a
+      key={item.href}
+      href={item.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 rounded-md transition-colors"
+      onClick={() => setIsMenuOpen(false)}
+    >
+      {item.label}
+    </a>
+  ) : (
+    <Link
+      key={item.href}
+      href={item.href}
+      className="px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 rounded-md transition-colors"
+      onClick={() => setIsMenuOpen(false)}
+    >
+      {item.label}
+    </Link>
+  )
+)}
+
               {isAuthenticated && (
                 <Button
                   asChild
